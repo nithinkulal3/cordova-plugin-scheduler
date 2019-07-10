@@ -128,7 +128,7 @@ public class SchedulerPlugin {
             }
         } else {
             Log.d(TAG, "- MainActivity is inactive");
-            forceMainActivityReload();
+            // forceMainActivityReload();
         }
     }
 

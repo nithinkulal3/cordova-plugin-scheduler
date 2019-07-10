@@ -37,11 +37,20 @@
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+            <meta-data
+                android:name  = "com.bridgefy.sdk.API_KEY"
+                android:value = "7631f6cf-a401-402d-bcd2-2497e9d5ffe5" />
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <service android:name="com.catalpa.scheduler.FetchJobService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         </config-file>
+        <framework src="com.android.support:support-v4:21+" />
+        <framework src="com.google.code.gson:gson:2.8.5" />
 
     </platform>
 
