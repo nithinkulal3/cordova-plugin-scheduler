@@ -31,5 +31,10 @@ module.exports = {
         success = success || function() {};
         failure = failure || function() {};
         exec(success, failure, MODULE, 'status', []);
+    },
+    sendBroadcastMessage: function(arg0, success, failure) {
+        success = success || function() {};
+        failure = failure || function() {};
+        exec(success, failure, MODULE, 'sendBroadcastMessage', [arg0])
     }
 };

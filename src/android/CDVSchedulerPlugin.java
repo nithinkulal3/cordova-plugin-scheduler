@@ -20,6 +20,9 @@ import android.provider.Settings;
 import android.util.Log;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothAdapter;
+import java.util.HashMap;
+import com.google.gson.Gson;
+import com.bridgefy.sdk.client.Bridgefy;
 
 public class CDVSchedulerPlugin extends CordovaPlugin {
     private Context cordovaContext;
@@ -66,6 +69,10 @@ public class CDVSchedulerPlugin extends CordovaPlugin {
             callbackContext.success(getAdapter().status());
         } else if (SchedulerPlugin.ACTION_FINISH.equalsIgnoreCase(action)) {
             finish(callbackContext);
+            result = true;
+        } else if (SchedulerPlugin.ACTION_SEND_BROADCAST_MESSAGE.equalsIgnoreCase(action)) {
+            HashMap<String, Object> data1 = new Gson().fromJson(data.getJSONObject(0).toString(), HashMap.class);
+            sendBroadcastMessage(data1, callbackContext);
             result = true;
         }
         return result;
@@ -135,6 +142,11 @@ public class CDVSchedulerPlugin extends CordovaPlugin {
         SchedulerPlugin adapter = getAdapter();
         adapter.finish();
         callbackContext.success();
+    }
+    public void sendBroadcastMessage(HashMap message, CallbackContext callbackContext) {
+        // Log.i(SchedulerPlugin.TAG, "sendBroadcastMessage");
+        Bridgefy.sendBroadcastMessage(message);
+        callbackContext.success("success");
     }
 
     private SchedulerPlugin getAdapter() {

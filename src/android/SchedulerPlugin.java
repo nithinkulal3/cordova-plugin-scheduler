@@ -25,6 +25,7 @@ public class SchedulerPlugin {
     public static final String ACTION_STOP      = "stop";
     public static final String ACTION_FINISH    = "finish";
     public static final String ACTION_STATUS    = "status";
+    public static final String ACTION_SEND_BROADCAST_MESSAGE = "sendBroadcastMessage";
     public static final String ACTION_FORCE_RELOAD = TAG + "-forceReload";
 
     public static final String EVENT_FETCH      = ".event.BACKGROUND_FETCH";

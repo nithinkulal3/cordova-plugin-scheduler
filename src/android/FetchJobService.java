@@ -46,40 +46,42 @@ import com.bridgefy.sdk.client.BFEnergyProfile;
 import android.support.v4.app.TaskStackBuilder;
 import android.app.PendingIntent;
 import org.json.JSONException;
+import org.apache.cordova.CallbackContext;
 
 @TargetApi(21)
 public class FetchJobService extends JobService {
     private String bridgefyApiKey;
     public static final String CHANNEL_1_ID = "channel1";
     private NotificationManagerCompat notificationManager;
-
+    private Context context;
     private static int count = 0;
     public Timer t;
+    public String packageName;
     @Override
     public boolean onStartJob(final JobParameters params) {
-        Context context = getApplicationContext();
+        context = getApplicationContext();
         notificationManager = NotificationManagerCompat.from(getApplicationContext());
         createNotificationChannels();
         bridgefyInit(context);
-        Log.d(SchedulerPlugin.TAG, "- jobStarted and this is here");
+        // Log.d(SchedulerPlugin.TAG, "- jobStarted and this is here");
 
-        t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask(){
-            @Override
-            public void run(){
-                count++;
-                Log.d(SchedulerPlugin.TAG, Integer.toString(count));
-                if (count >= 180) {
-                    t.cancel();
-                    t.purge();
-                    count = 0;
-                    return;
-                }
-                Log.d(SchedulerPlugin.TAG, "A Kiss every 5 seconds");
-            }
-        },0,5000);
+        // t = new Timer();
+        // t.scheduleAtFixedRate(new TimerTask(){
+        //     @Override
+        //     public void run(){
+        //         count++;
+        //         Log.d(SchedulerPlugin.TAG, Integer.toString(count));
+        //         if (count >= 180) {
+        //             t.cancel();
+        //             t.purge();
+        //             count = 0;
+        //             return;
+        //         }
+        //         Log.d(SchedulerPlugin.TAG, "A Kiss every 5 seconds");
+        //     }
+        // },0,5000);
 
-        Log.d(SchedulerPlugin.TAG, "- jobStarted and wait for 1 minute and came here");
+        // Log.d(SchedulerPlugin.TAG, "- jobStarted and wait for 1 minute and came here");
 
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -128,7 +130,8 @@ public class FetchJobService extends JobService {
             }    
         });
     }
-        /**
+
+    /**
      *      BRIDGEFY METHODS
      */
     private void startBridgefy() {
@@ -143,7 +146,10 @@ public class FetchJobService extends JobService {
           JSONObject s = new JSONObject(message.getContent());;
           Log.d(SchedulerPlugin.TAG, "Message: " + s);
           try {
-            sendNotification(s.getString("enterpriseName"), s.getString("description"));
+                packageName = context.getPackageName().toString();
+                if (packageName.equals("com.farmfreshweb.consumer")) {
+                    sendNotification(s.getString("enterpriseName"), s.getString("description"));
+                }
           } catch (JSONException e) {
             Log.d(SchedulerPlugin.TAG, "notify error: " + e);
             //some exception handler code.
@@ -185,10 +191,11 @@ public class FetchJobService extends JobService {
     };
 
     public void sendNotification(String title, String message) {
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(this, FetchJobService.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+        launchIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
                 .setSmallIcon(android.R.drawable.stat_notify_chat)
@@ -197,8 +204,10 @@ public class FetchJobService extends JobService {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
                 .build();
         notificationManager.notify(1, notification);
+
     }
 
     private void createNotificationChannels() {
