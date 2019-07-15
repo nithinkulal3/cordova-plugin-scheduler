@@ -57,31 +57,35 @@ public class FetchJobService extends JobService {
     private static int count = 0;
     public Timer t;
     public String packageName;
+    public Boolean bridgefyStarted = false;
     @Override
     public boolean onStartJob(final JobParameters params) {
         context = getApplicationContext();
         notificationManager = NotificationManagerCompat.from(getApplicationContext());
         createNotificationChannels();
         bridgefyInit(context);
-        // Log.d(SchedulerPlugin.TAG, "- jobStarted and this is here");
+        Log.d(SchedulerPlugin.TAG, "- jobStarted and this is here");
 
-        // t = new Timer();
-        // t.scheduleAtFixedRate(new TimerTask(){
-        //     @Override
-        //     public void run(){
-        //         count++;
-        //         Log.d(SchedulerPlugin.TAG, Integer.toString(count));
-        //         if (count >= 180) {
-        //             t.cancel();
-        //             t.purge();
-        //             count = 0;
-        //             return;
-        //         }
-        //         Log.d(SchedulerPlugin.TAG, "A Kiss every 5 seconds");
-        //     }
-        // },0,5000);
+        t = new Timer();
+        t.scheduleAtFixedRate(new TimerTask(){
+            @Override
+            public void run(){
+                count++;
+                Log.d(SchedulerPlugin.TAG, Integer.toString(count));
+                if (count >= 180) {
+                    t.cancel();
+                    t.purge();
+                    count = 0;
+                    return;
+                }
+                if (bridgefyStarted) {
+                    Boolean bridgefyResume = Bridgefy.resume();
+                    Log.d(SchedulerPlugin.TAG, "is resume? " + bridgefyResume.toString());
+                }
+            }
+        },0,5000);
 
-        // Log.d(SchedulerPlugin.TAG, "- jobStarted and wait for 1 minute and came here");
+        Log.d(SchedulerPlugin.TAG, "- jobStarted and wait for 1 minute and came here");
 
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -181,6 +185,12 @@ public class FetchJobService extends JobService {
         public void onDeviceLost(Device peer) {
             Log.w(SchedulerPlugin.TAG, "onDeviceLost: " + peer.getUserId());
             // peersAdapter.removePeer(peer);
+        }
+
+        @Override
+        public void onStarted() {
+            bridgefyStarted = true;
+            Log.e(SchedulerPlugin.TAG, "onStarted:");
         }
 
         @Override
