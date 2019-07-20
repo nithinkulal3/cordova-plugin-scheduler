@@ -40,13 +40,13 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothAdapter;
 import android.app.Activity;
 import android.app.ActivityManager;
-// import android.app.ComponentName;
 import android.content.Intent;
 import com.bridgefy.sdk.client.BFEnergyProfile;
 import android.support.v4.app.TaskStackBuilder;
 import android.app.PendingIntent;
 import org.json.JSONException;
 import org.apache.cordova.CallbackContext;
+import android.content.SharedPreferences;
 
 @TargetApi(21)
 public class FetchJobService extends JobService {
@@ -58,6 +58,7 @@ public class FetchJobService extends JobService {
     public Timer t;
     public String packageName;
     public Boolean bridgefyStarted = false;
+    private SharedPreferences sharedPref;
     @Override
     public boolean onStartJob(final JobParameters params) {
         context = getApplicationContext();
@@ -143,7 +144,7 @@ public class FetchJobService extends JobService {
         builder.setEnergyProfile(BFEnergyProfile.HIGH_PERFORMANCE);
         Bridgefy.start(messageListener, stateListener,builder.build());
     }
-
+    
     private MessageListener messageListener = new MessageListener() {
         @Override
         public void onBroadcastMessageReceived(Message message) {
@@ -152,21 +153,32 @@ public class FetchJobService extends JobService {
           try {
                 packageName = context.getPackageName().toString();
                 if (packageName.equals("com.farmfreshweb.consumer")) {
-                    sendNotification(s.getString("enterpriseName"), s.getString("description"));
+                    sharedPref = getSharedPreferences("NativeStorage", MODE_PRIVATE); 
+                    SharedPreferences.Editor prefsEditor;  
+                    prefsEditor = sharedPref.edit();  
+                    String restoredText = sharedPref.getString("marketId", null);
+                    String enterpriseId = Integer.toString(s.getInt("enterpriseId"));
+                    Log.d(SchedulerPlugin.TAG, "restoredText: " + restoredText);
+                    Log.d(SchedulerPlugin.TAG, "enterpriseId: " + enterpriseId);
+                    Log.d(SchedulerPlugin.TAG, "customerType: " + s.getString("customerType"));
+                    if (s.getString("customerType").equals("All_shoppers")) {
+                        sendNotification(s.getString("enterpriseName"), s.getString("description"));
+                    } else {               
+                        if (restoredText.equals(enterpriseId)){
+                            // String name = sharedPref.getString("marketId", "No name defined");//"No name defined" is the default value.
+                            // Log.d(SchedulerPlugin.TAG, "marketId: " + name);
+                            sendNotification(s.getString("enterpriseName"), s.getString("description"));
+                        }
+                    }
                 }
           } catch (JSONException e) {
             Log.d(SchedulerPlugin.TAG, "notify error: " + e);
-            //some exception handler code.
           }  
         }
 
         @Override
         public void onMessageReceived(Message message) {
             Log.i(SchedulerPlugin.TAG, "onMessageReceived: ");
-            // String s = (String) message.getContent().get("key");
-            // sendToIonic("bridgefyMessage", s.toString(), true);
-            // String s = message.getContent().get("manufacturer ") + " " + message.getContent().get("model");
-            // Log.d(TAG, "Message Received: " + message.getSenderId() + ", content: " + s);
         }
 
     };
